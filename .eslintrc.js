@@ -13,4 +13,9 @@ module.exports = {
       },
     },
   ],
+  rules: {
+    'prettier/prettier': 0,
+    '@typescript-eslint/no-unused-vars': 'off',
+    'no-mixed-spaces-and-tabs': 0,
+  },
 };
