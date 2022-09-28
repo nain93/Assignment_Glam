@@ -3,13 +3,18 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
 import Home from '../screens/Home';
 import Mypage from '../screens/Mypage';
+import theme from '../styles/theme';
 
 const Tabs = createBottomTabNavigator();
 
 const TabNavigator = () => {
 
   return (
-    <Tabs.Navigator>
+    <Tabs.Navigator
+      sceneContainerStyle={{
+        backgroundColor: theme.colors.white,
+      }}
+    >
       <Tabs.Screen
         name="Home"
         component={Home}
