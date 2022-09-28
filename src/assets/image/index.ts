@@ -1,5 +1,3 @@
-import info from '../icon/main/info.png';
-import logo from '../icon/main/logo.png';
+import person from './person.png';
 
-
-export { info, logo };
+export { person };
