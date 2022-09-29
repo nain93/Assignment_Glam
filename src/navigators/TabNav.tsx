@@ -5,10 +5,15 @@ import Home from '../screens/Home';
 import Mypage from '../screens/Mypage';
 import theme from '../styles/theme';
 
-const Tabs = createBottomTabNavigator();
+export type RootStackParamList = {
+  Home: undefined;
+  Mypage: undefined;
+};
+
+const Tabs = createBottomTabNavigator<RootStackParamList>();
+
 
 const TabNavigator = () => {
-
   return (
     <Tabs.Navigator
       sceneContainerStyle={{

@@ -1,35 +1,22 @@
-import { Dimensions, FlatList, Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { TabBar, TabView } from 'react-native-tab-view';
 import React, { useState } from 'react';
 import theme from '../styles/theme';
 import { getStatusBarHeight } from 'react-native-iphone-x-helper';
-import { close, info, logo, setting } from '../assets/icon';
-import { NavigationStackProp } from 'react-navigation-stack';
-import { NavigationRoute } from 'react-navigation';
+import { hot, logo, setting, today } from '../assets/icon';
 import { useQuery } from 'react-query';
-import { getTodayRecommend } from '../api/home';
+import { getMoreRecommend, getTodayRecommend } from '../api/home';
 import FastImage from 'react-native-fast-image';
 import { FONT } from '../styles/font';
-import LinearGradient from 'react-native-linear-gradient';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigators/TabNav';
+import RecommendCard from '../components/RecommendCard';
+import { RecommendCardType } from '../types';
 
-interface HomePropType {
-  navigation: NavigationStackProp;
-  route: NavigationRoute;
-}
+type HomePropType = NativeStackScreenProps<RootStackParamList, 'Home'>
 
-interface TodayRecommendType {
-  data: {
-    id: number,
-    age: number,
-    company: string,
-    distance: number,
-    height: number,
-    introduction: string,
-    job: string,
-    location: string,
-    name: string,
-    pictures: string[]
-  }[]
+interface RecommendQueryType {
+  data: RecommendCardType[]
 }
 
 const Home = ({ navigation }: HomePropType) => {
@@ -40,7 +27,8 @@ const Home = ({ navigation }: HomePropType) => {
     { key: 'live', title: '라이브' },
   ]);
 
-  const { data: TodayList } = useQuery<TodayRecommendType, Error>('getTodayRecommend', getTodayRecommend);
+  const { data: TodayList } = useQuery<RecommendQueryType, Error>('getTodayRecommend', getTodayRecommend);
+  const { data: MoreList } = useQuery<RecommendQueryType, Error>('getMoreRecommend', getMoreRecommend);
 
   return (
     <TabView
@@ -99,104 +87,34 @@ const Home = ({ navigation }: HomePropType) => {
             return (
               <FlatList
                 showsVerticalScrollIndicator={false}
-                data={TodayList?.data}
-                renderItem={({ item }) => (
+                data={TodayList?.data.concat(MoreList?.data || [])}
+                renderItem={({ item, index: cardIndex }) => (
                   <>
-                    <View style={{
-                      backgroundColor: 'green',
-                      width: Dimensions.get('window').width - 10,
-                      aspectRatio: 0.6,
-                      borderRadius: 5,
-                      marginHorizontal: 5,
-                      paddingHorizontal: 16,
-                      paddingVertical: 16,
-                      marginBottom: 12,
-                    }}>
-                      <LinearGradient
-                        colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.1)', '#333333']}
-                        style={{
-                          position: 'absolute',
-                          zIndex: 1,
-                          width: Dimensions.get('window').width - 10,
-                          aspectRatio: 0.6,
-                          borderRadius: 5,
-                        }} />
-
-                      <View style={{
-                        backgroundColor: 'rgba(255,255,255,0.25)',
-                        width: 100,
-                        paddingVertical: 5,
-                        borderRadius: 5,
-                        marginTop: 'auto',
-                        zIndex: 2,
-                      }}>
-                        <Text style={[FONT.Regular, {
-                          color: theme.colors.white,
-                          fontSize: 14,
-                          textAlign: 'center',
-                        }]}>오늘의 추천</Text>
-                      </View>
-
-                      <View style={{
-                        marginTop: 12,
-                        flexDirection: 'row', alignItems: 'center',
-                        zIndex: 2,
-                      }}>
-                        <Text style={[FONT.SemiBold, {
-                          fontSize: 24, color: theme.colors.white,
-                        }]}>
-                          {`${item.name}, ${item.age}`}
-                        </Text>
-                        <Image source={info} style={{ marginLeft: 4 }} />
-                      </View>
-
-                      {item.introduction ?
-                        <Text style={[FONT.Regular, {
-                          marginTop: 8,
-                          fontSize: 16, color: theme.colors.white,
-                          zIndex: 2,
-                        }]}>
-                          {item.introduction}
-                        </Text>
-                        :
-                        <View style={{ zIndex: 2 }}>
-                          <Text style={[FONT.Regular, {
-                            marginTop: 8,
-                            fontSize: 16, color: theme.colors.white,
-                          }]}>
-                            {item.job} · {item.distance > 1000 ? `${item.distance / 1000}k` : item.distance}m
-                          </Text>
-                          <Text style={[FONT.Regular, {
-                            fontSize: 16, color: theme.colors.white,
-                            opacity: 0.6, marginTop: 4,
-                          }]}>
-                            {item.height}cm
-                          </Text>
-                        </View>
-                      }
-
-                      <View style={{ marginTop: 20, flexDirection: 'row', zIndex: 2 }}>
-                        <TouchableOpacity style={{
-                          width: 48, height: 48,
-                          backgroundColor: theme.colors.grayscale.darkGray1,
-                          justifyContent: 'center', alignItems: 'center', borderRadius: 5,
-                        }}>
-                          <Image source={close} style={{ width: 24, height: 24 }} />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={{
+                    {/* 추천카드 */}
+                    <RecommendCard card={item} cardIndex={cardIndex} />
+                    {/* 맞춤추천  컴포넌트로 빼자*/}
+                    <View style={{ marginTop: 12, marginBottom: 24, marginHorizontal: 16 }}>
+                      <Text style={[FONT.SemiBold, {
+                        marginBottom: 12,
+                        fontSize: 20, color: theme.colors.black,
+                      }]}>
+                        맞춤 추천
+                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Image source={today} style={{ width: 40, marginRight: 12 }} />
+                        <Text style={[FONT.Regular, { fontSize: 14 }]}>글램 추천 </Text>
+                        <Image source={hot} style={{ marginRight: 'auto' }} />
+                        <Pressable style={{
                           backgroundColor: theme.colors.glamBlue,
-                          marginLeft: 8,
+                          width: 76, height: 32, borderRadius: 5,
                           justifyContent: 'center', alignItems: 'center',
-                          borderRadius: 5,
-                          width: Dimensions.get('window').width - 98,
                         }}>
-                          <Text style={[FONT.SemiBold, {
-                            fontSize: 14, color: theme.colors.white,
-                          }]}>좋아요</Text>
-                        </TouchableOpacity>
+                          <Text style={[FONT.SemiBold, { fontSize: 14, color: theme.colors.white }]}>
+                            선택
+                          </Text>
+                        </Pressable>
                       </View>
                     </View>
-                    {/* <FastImage source={require(item.pictures[0])} /> */}
                   </>
                 )}
               />
