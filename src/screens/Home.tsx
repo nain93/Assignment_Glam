@@ -2,11 +2,10 @@ import { Dimensions, FlatList, Image, Pressable, StyleSheet, Text, TouchableOpac
 import { TabBar, TabView } from 'react-native-tab-view';
 import React, { useState } from 'react';
 import theme from '../styles/theme';
-import { getStatusBarHeight } from 'react-native-iphone-x-helper';
+import { getStatusBarHeight, isIphoneX } from 'react-native-iphone-x-helper';
 import { dia, glamour, logo, setting, today, withpet } from '../assets/icon';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { getAddMoreRecommend, getMoreRecommend, getTodayRecommend } from '../api/home';
-import FastImage from 'react-native-fast-image';
 import { FONT } from '../styles/font';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigators/TabNav';
@@ -49,7 +48,7 @@ const Home = ({ navigation }: HomePropType) => {
 
   return (
     <TabView
-      style={{ marginTop: getStatusBarHeight() }}
+      style={{ marginTop: isIphoneX() ? getStatusBarHeight() : 0 }}
       onIndexChange={setIndex}
       navigationState={{ index, routes }}
       renderTabBar={(p) =>
@@ -60,7 +59,8 @@ const Home = ({ navigation }: HomePropType) => {
         }}>
           <TabBar {...p}
             tabStyle={{
-              paddingBottom: 0,
+              paddingVertical: 0,
+              elevation: 0,
             }}
             indicatorStyle={{
               height: 2,
@@ -72,6 +72,7 @@ const Home = ({ navigation }: HomePropType) => {
               backgroundColor: theme.colors.white,
               paddingHorizontal: 0,
               width: Dimensions.get('window').width / 1.75,
+              elevation: 0,
             }}
             renderLabel={({ route, focused }) => {
               if (route.title === '로고') {

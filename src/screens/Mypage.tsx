@@ -347,7 +347,7 @@ const Mypage = () => {
                   {profileInfo.education}
                 </Text>
                 :
-                <Text style={[FONT.Regular, { color: theme.colors.grayscale.gray2 }]}>
+                <Text style={[FONT.Regular, { width: '65%', color: theme.colors.grayscale.gray2 }]}>
                   선택해주세요
                 </Text>
               }
@@ -358,7 +358,7 @@ const Mypage = () => {
               </Text>
               <TextInput
                 value={profileInfo.school}
-                style={[FONT.Regular, { width: '65%', color: theme.colors.glamBlue }]}
+                style={[FONT.Regular, { width: '65%', color: theme.colors.glamBlue, paddingHorizontal: 0 }]}
                 placeholder="입력해주세요"
                 placeholderTextColor={theme.colors.grayscale.gray2}
                 onChangeText={(e) => setProfileInfo({ ...profileInfo, school: e })}
@@ -407,7 +407,7 @@ export default Mypage;
 
 const styles = StyleSheet.create({
   personCard: {
-    width: (Dimensions.get('window').width / 3) - 5,
+    width: (Dimensions.get('window').width - 5) / 3,
     marginBottom: 2.5,
   },
   infoCard: {
@@ -421,6 +421,7 @@ const styles = StyleSheet.create({
   profileInput: {
     color: theme.colors.glamBlue,
     width: '65%',
+    paddingHorizontal: 0,
   },
   modalWrap: {
     backgroundColor: theme.colors.white,
