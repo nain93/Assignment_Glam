@@ -1,5 +1,5 @@
-import { Dimensions, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { Dimensions, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
 import { person } from '../assets/image';
 import { FONT } from '../styles/font';
 import theme from '../styles/theme';
@@ -11,24 +11,34 @@ interface ProfileType {
   birthday: string,
   body_type: string,
   company: string,
-  education?: string,
-  gender: string,
+  education?: '고등학교' | '전문대' | '대학교' | '석사' | '박사' | '기타',
+  gender: '남성' | '여성',
   height: string,
   id: number,
   introduction: string,
   job: string,
   location: string,
   name: string,
+  school?: string,
   pictures: string[],
 }
 
 interface ProfileDataType {
   data: ProfileType,
   meta: {
-    body_types: Array<any>,
-    educations: Array<any>,
-    genders: Array<any>,
-    height_range: Array<any>
+    body_types: Array<{
+      key: string,
+      name: '마른' | '보통' | '근육' | '통통'
+    }>,
+    educations: Array<{
+      key: string,
+      name: '고등학교' | '전문대' | '대학교' | '석사' | '박사' | '기타'
+    }>,
+    genders: Array<{
+      key: string,
+      name: '남성' | '여성'
+    }>,
+    height_range: { max: number, min: number }
   }
 }
 
@@ -38,53 +48,59 @@ const Mypage = () => {
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [modalInfo, setModalInfo] = useState<{
     headerTitle: string,
-    children: JSX.Element
+    children: JSX.Element,
+    viewStyle?: ViewStyle
   }>();
-
   const [profileInfo, setProfileInfo] = useState<ProfileType>({
     introduction: '',
     height: '',
     birthday: '',
-    body_type: '',
     company: '',
-    education: '',
-    gender: '',
+    body_type: '근육',
+    education: '고등학교',
+    gender: '남성',
     id: 0,
     job: '',
     location: '',
     name: '',
     pictures: [],
   });
+  const scrollRef = useRef<ScrollView>(null);
 
   const { data: profile } = useQuery<ProfileDataType, Error>('getProfile', getProfile);
 
 
-
   useEffect(() => {
-    let height = 120;
-    const arr: string[] = [];
-    while (height < 201) {
-      if (height === 120) {
-        arr.push(height.toString() + 'cm 이하');
+    // * 키 범위 만드는 핸들러
+    if (profile?.meta.height_range) {
+      let height = profile?.meta.height_range.min;
+      const arr: string[] = [];
+      while (height < profile?.meta.height_range.max + 1) {
+        if (height === profile?.meta.height_range.min) {
+          arr.push(height.toString() + 'cm 이하');
+        }
+        else if (height === profile?.meta.height_range.max) {
+          arr.push(height.toString() + 'cm 이상');
+        }
+        else {
+          arr.push(height.toString() + 'cm');
+        }
+        height++;
       }
-      else if (height === 200) {
-        arr.push(height.toString() + 'cm 이상');
-      }
-      else {
-        arr.push(height.toString() + 'cm');
-      }
-      height++;
+      setHeightArr(arr);
     }
-    setHeightArr(arr);
-  }, []);
+  }, [profile?.meta.height_range]);
 
   useEffect(() => {
+    // * 초기값 담기
     if (profile) {
-      setProfileInfo({ ...profile.data, height: `${profile.data.height}cm` });
+      setProfileInfo({
+        ...profile.data,
+        height: `${profile.data.height}cm`,
+      });
     }
   }, [profile]);
 
-  // console.log(profile?.meta, 'profile?.data');
   return (
     <>
       <ScrollView
@@ -132,7 +148,13 @@ const Mypage = () => {
               성별
             </Text>
             <Text style={[FONT.Regular, styles.profileTitle, { width: '65%' }]}>
-              {profile?.data.gender}
+              {React.Children.toArray(
+                profile?.meta.genders.map(v => {
+                  if (v.key === profileInfo.gender) {
+                    return v.name;
+                  }
+                })
+              )}
             </Text>
           </View>
 
@@ -164,7 +186,6 @@ const Mypage = () => {
             <Text style={[FONT.Regular, styles.profileTitle, { height: 35 }]}>
               소개
             </Text>
-
             <TextInput
               value={profileInfo.introduction}
               style={[FONT.Regular, {
@@ -174,7 +195,6 @@ const Mypage = () => {
               placeholderTextColor={theme.colors.grayscale.gray2}
               onChangeText={(e) => setProfileInfo({ ...profileInfo, introduction: e })}
             />
-
             <Text style={[FONT.Regular, { fontSize: 12, color: theme.colors.grayscale.gray4, marginTop: 10 }]}>
               SNS 아이디 등 연락처 입력 시 서비스 이용 제한됩니다
             </Text>
@@ -195,8 +215,18 @@ const Mypage = () => {
                           <TouchableOpacity onPress={() => {
                             setProfileInfo({ ...profileInfo, height: heightValue });
                             setModalOpen(false);
-                          }}>
-                            <Text style={[FONT.Regular, { marginBottom: index === heightArr.length - 1 ? 0 : 20 }]}>
+                          }}
+                            onLayout={(event) => {
+                              if (profileInfo.height === heightValue) {
+                                const layout = event.nativeEvent.layout;
+                                scrollRef.current?.scrollTo({ x: 0, y: layout.y, animated: false });
+                              }
+                            }}
+                          >
+                            <Text style={[FONT.Regular, {
+                              color: profileInfo.height === heightValue ? theme.colors.glamBlue : theme.colors.black,
+                              marginBottom: index === heightArr.length - 1 ? 0 : 20,
+                            }]}>
                               {heightValue}
                             </Text>
                           </TouchableOpacity>
@@ -204,6 +234,7 @@ const Mypage = () => {
                       }))}
                     </>
                   ),
+                  viewStyle: { height: 500 },
                   headerTitle: '키',
                 });
               }}
@@ -217,22 +248,45 @@ const Mypage = () => {
                 }]}>{profileInfo.height}</Text>}
             </Pressable>
 
-            <View style={[styles.infoCard]}>
+            <Pressable onPress={() => {
+              setModalOpen(true);
+              setModalInfo({
+                children: (
+                  <>
+                    {React.Children.toArray(profile?.meta.body_types.map((body, index) => (
+                      <TouchableOpacity onPress={() => {
+                        setProfileInfo({ ...profileInfo, body_type: body.key });
+                        setModalOpen(false);
+                      }}>
+                        <Text style={[FONT.Regular, {
+                          color: profileInfo.body_type === body.key ? theme.colors.glamBlue : theme.colors.black,
+                          marginBottom: index === profile?.meta.body_types.length - 1 ? 0 : 20,
+                        }]}>
+                          {body.name}
+                        </Text>
+                      </TouchableOpacity>
+                    )))}
+                  </>
+                ),
+                headerTitle: '체형',
+              });
+            }} style={styles.infoCard}>
               <Text style={[FONT.Regular, styles.profileTitle, { width: '35%' }]}>
                 체형
               </Text>
+              <Text style={[FONT.Regular, {
+                color: theme.colors.glamBlue,
+              }]}>
+                {React.Children.toArray(
+                  profile?.meta.body_types.map(v => {
+                    if (v.key === profileInfo.body_type) {
+                      return v.name;
+                    }
+                  })
+                )}
+              </Text>
+            </Pressable>
 
-              <TextInput
-                value={profileInfo.body_type}
-                style={[FONT.Regular, {
-                  color: theme.colors.glamBlue,
-                }]}
-                placeholder="입력해주세요"
-                placeholderTextColor={theme.colors.grayscale.gray2}
-                onChangeText={(e) => setProfileInfo({ ...profileInfo, body_type: e })}
-              />
-
-            </View>
           </View>
 
           <View style={{ paddingVertical: 8 }}>
@@ -240,37 +294,80 @@ const Mypage = () => {
               <Text style={[FONT.Regular, styles.profileTitle, { width: '35%' }]}>
                 직장
               </Text>
-              <Text style={[FONT.Regular, styles.profileTitle, { width: '65%', color: theme.colors.glamBlue }]}>
-                {profile?.data.company}
-              </Text>
+              <TextInput
+                value={profileInfo.company}
+                style={[FONT.Regular, styles.profileInput]}
+                placeholder="입력해주세요"
+                placeholderTextColor={theme.colors.grayscale.gray2}
+                onChangeText={(e) => setProfileInfo({ ...profileInfo, company: e })}
+              />
             </View>
             <View style={[styles.infoCard]}>
               <Text style={[FONT.Regular, styles.profileTitle, { width: '35%' }]}>
                 직업
               </Text>
-              <Text style={[FONT.Regular, styles.profileTitle, { width: '65%', color: theme.colors.glamBlue }]}>
-                {profile?.data.job}
-              </Text>
+              <TextInput
+                value={profileInfo.job}
+                style={[FONT.Regular, styles.profileInput]}
+                placeholder="입력해주세요"
+                placeholderTextColor={theme.colors.grayscale.gray2}
+                onChangeText={(e) => setProfileInfo({ ...profileInfo, job: e })}
+              />
             </View>
-            <View style={[styles.infoCard]}>
+            <Pressable
+              onPress={() => {
+                setModalOpen(true);
+                setModalInfo({
+                  children: (
+                    <>
+                      {React.Children.toArray(profile?.meta.educations.map((edu, index) => (
+                        <TouchableOpacity onPress={() => {
+                          setProfileInfo({ ...profileInfo, education: edu.name });
+                          setModalOpen(false);
+                        }}>
+                          <Text style={[FONT.Regular, {
+                            color: profileInfo.education === edu.name ? theme.colors.glamBlue : theme.colors.black,
+                            marginBottom: index === profile.meta.educations.length - 1 ? 0 : 20,
+                          }]}>
+                            {edu.name}
+                          </Text>
+                        </TouchableOpacity>
+                      )))}
+                    </>
+                  ),
+                  headerTitle: '학력',
+                });
+              }}
+              style={[styles.infoCard]}>
               <Text style={[FONT.Regular, styles.profileTitle, { width: '35%' }]}>
                 학력
               </Text>
-              <Text style={[FONT.Regular, styles.profileTitle, { width: '65%', color: theme.colors.glamBlue }]}>
-                {profile?.data.education}
-              </Text>
-            </View>
+              {profileInfo.education ?
+                <Text style={[FONT.Regular, { width: '65%', color: theme.colors.glamBlue }]}>
+                  {profileInfo.education}
+                </Text>
+                :
+                <Text style={[FONT.Regular, { color: theme.colors.grayscale.gray2 }]}>
+                  선택해주세요
+                </Text>
+              }
+            </Pressable>
             <View style={[styles.infoCard]}>
               <Text style={[FONT.Regular, styles.profileTitle, { width: '35%' }]}>
                 학교
               </Text>
-              <Text style={[FONT.Regular, styles.profileTitle, { width: '65%', color: theme.colors.glamBlue }]}>
-                {profile?.data.education}
-              </Text>
+              <TextInput
+                value={profileInfo.school}
+                style={[FONT.Regular, { width: '65%', color: theme.colors.glamBlue }]}
+                placeholder="입력해주세요"
+                placeholderTextColor={theme.colors.grayscale.gray2}
+                onChangeText={(e) => setProfileInfo({ ...profileInfo, school: e })}
+              />
             </View>
           </View>
-
         </View>
+
+        {/* 프로필 수정 팝업 */}
         {modalOpen &&
           <Modal
             isVisible={modalOpen}
@@ -278,8 +375,8 @@ const Mypage = () => {
             animationIn="fadeIn"
             animationOut="fadeOut"
             onBackdropPress={() => setModalOpen(false)}
-            backdropTransitionOutTiming={0}
             onBackButtonPress={() => setModalOpen(false)}
+            backdropTransitionOutTiming={0}
           >
             <View style={styles.modalWrap}>
               <View style={{
@@ -291,9 +388,10 @@ const Mypage = () => {
                   {modalInfo?.headerTitle}
                 </Text>
               </View>
-              <ScrollView showsVerticalScrollIndicator={false}
-                style={{ height: 500 }}
-              >
+              <ScrollView
+                ref={scrollRef}
+                showsVerticalScrollIndicator={false}
+                style={modalInfo?.viewStyle}>
                 <View style={{ paddingHorizontal: 16, paddingVertical: 16 }}>
                   {modalInfo?.children}
                 </View>
@@ -319,6 +417,10 @@ const styles = StyleSheet.create({
   },
   profileTitle: {
     fontSize: 16, color: theme.colors.black,
+  },
+  profileInput: {
+    color: theme.colors.glamBlue,
+    width: '65%',
   },
   modalWrap: {
     backgroundColor: theme.colors.white,

@@ -5,7 +5,6 @@ import { close, info } from '../assets/icon';
 import { FONT } from '../styles/font';
 import theme from '../styles/theme';
 import { RecommendCardType } from '../types';
-import FastImage from 'react-native-fast-image';
 
 interface RecommendCardPropType {
   card: RecommendCardType,
