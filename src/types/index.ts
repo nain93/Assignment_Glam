@@ -22,3 +22,5 @@ export interface RecommendQueryType {
     }
   }
 }
+
+export type CardListType = RecommendQueryType | { data: Array<RecommendCardType & { today?: boolean }> }

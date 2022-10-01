@@ -18,5 +18,6 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': 'off',
     'no-mixed-spaces-and-tabs': 0,
     'react-native/no-inline-styles': 0,
+    'react-hooks/exhaustive-deps': 'warn',
   },
 };

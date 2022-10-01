@@ -4,40 +4,22 @@ import LinearGradient from 'react-native-linear-gradient';
 import { close, info } from '../assets/icon';
 import { FONT } from '../styles/font';
 import theme from '../styles/theme';
-import { RecommendCardType, RecommendQueryType } from '../types';
-import { useQueryClient } from 'react-query';
+import { CardListType, RecommendCardType } from '../types';
 import FastImage from 'react-native-fast-image';
 import { myCat } from '../assets/image';
 
 interface RecommendCardPropType {
   card: RecommendCardType & { today?: boolean }
+  cardList?: CardListType
+  setCardList: (card: CardListType) => void
   cardIndex: number
 }
 
-const RecommendCard = ({ card, cardIndex }: RecommendCardPropType) => {
-  const queryClient = useQueryClient();
+const RecommendCard = ({ card, cardIndex, cardList, setCardList }: RecommendCardPropType) => {
 
   const deleteCardHandler = () => {
-    // * 오늘의 추천 카드일때
-    if (card.today) {
-      queryClient.setQueryData<{ data: Array<RecommendCardType & { today?: boolean }> } | undefined>('getTodayRecommend', (list) => {
-        if (list) {
-          return {
-            data: list?.data.filter((v, i) => cardIndex !== i),
-          };
-        }
-      });
-    }
-    // * 다른 추천 카드일때
-    else {
-      queryClient.setQueryData<RecommendQueryType | undefined>('getMoreRecommend', (list) => {
-        if (list) {
-          return {
-            ...list,
-            data: list?.data.filter((v, i) => cardIndex !== i),
-          };
-        }
-      });
+    if (cardList) {
+      setCardList({ ...cardList, data: cardList?.data.filter((v, i) => cardIndex !== i) });
     }
   };
 

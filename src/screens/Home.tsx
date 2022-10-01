@@ -1,6 +1,6 @@
 import { Dimensions, FlatList, Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { TabBar, TabView } from 'react-native-tab-view';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import theme from '../styles/theme';
 import { getStatusBarHeight, isIphoneX } from 'react-native-iphone-x-helper';
 import { dia, glamour, logo, setting, today, withpet } from '../assets/icon';
@@ -10,7 +10,7 @@ import { FONT } from '../styles/font';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigators/TabNav';
 import RecommendCard from '../components/RecommendCard';
-import { RecommendCardType, RecommendQueryType } from '../types';
+import { CardListType, RecommendCardType, RecommendQueryType } from '../types';
 import CustomRecommend from '../components/CustomRecommend';
 
 type HomePropType = NativeStackScreenProps<RootStackParamList, 'Home'>
@@ -23,6 +23,8 @@ const Home = ({ navigation }: HomePropType) => {
     { key: 'near', title: '근처' },
     { key: 'live', title: '라이브' },
   ]);
+
+  const [cardList, setCardList] = useState<CardListType>();
 
   const { data: todayList } = useQuery<{ data: Array<RecommendCardType & { today?: boolean }> }, Error>('getTodayRecommend',
     async () => {
@@ -45,6 +47,12 @@ const Home = ({ navigation }: HomePropType) => {
         });
       },
     });
+
+  useEffect(() => {
+    if (todayList?.data && moreList?.data) {
+      setCardList({ ...cardList, data: todayList?.data.concat(moreList?.data || []) });
+    }
+  }, [moreList?.data, todayList?.data]);
 
   return (
     <TabView
@@ -111,11 +119,14 @@ const Home = ({ navigation }: HomePropType) => {
                   }
                 }}
                 showsVerticalScrollIndicator={false}
-                data={todayList?.data.concat(moreList?.data || [])}
+                data={cardList?.data}
                 renderItem={({ item, index: cardIndex }) => (
                   <>
                     {/* 추천카드 */}
-                    <RecommendCard card={item} cardIndex={cardIndex} />
+                    <RecommendCard card={item}
+                      cardList={cardList}
+                      setCardList={(card: CardListType) =>
+                        setCardList(card)} cardIndex={cardIndex} />
                     {cardIndex === 1 &&
                       <View style={{ marginTop: 12, marginBottom: 24, marginHorizontal: 16 }}>
                         <Text style={[FONT.SemiBold, {
