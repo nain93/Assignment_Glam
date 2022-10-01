@@ -10,3 +10,15 @@ export interface RecommendCardType {
   name: string,
   pictures: string[]
 }
+
+
+export interface RecommendQueryType {
+  data: RecommendCardType[],
+  meta: {
+    next: {
+      id: number,
+      method: 'get',
+      url: string
+    }
+  }
+}

@@ -15,6 +15,16 @@ export const getMoreRecommend = async () => {
   }
 };
 
+export const getAddMoreRecommend = async ({ url, method }: { url?: string, method?: 'get' }) => {
+  const res = await axios({
+    method,
+    url: baseURL + url,
+  });
+  if (res) {
+    return res.data;
+  }
+};
+
 export const getCustomRecommend = async () => {
   const res = await axios.post(baseURL + '/introduction/custom');
   if (res) {

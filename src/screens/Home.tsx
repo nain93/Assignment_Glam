@@ -4,23 +4,20 @@ import React, { useState } from 'react';
 import theme from '../styles/theme';
 import { getStatusBarHeight } from 'react-native-iphone-x-helper';
 import { dia, glamour, logo, setting, today, withpet } from '../assets/icon';
-import { useQuery } from 'react-query';
-import { getMoreRecommend, getTodayRecommend } from '../api/home';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { getAddMoreRecommend, getMoreRecommend, getTodayRecommend } from '../api/home';
 import FastImage from 'react-native-fast-image';
 import { FONT } from '../styles/font';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigators/TabNav';
 import RecommendCard from '../components/RecommendCard';
-import { RecommendCardType } from '../types';
+import { RecommendCardType, RecommendQueryType } from '../types';
 import CustomRecommend from '../components/CustomRecommend';
 
 type HomePropType = NativeStackScreenProps<RootStackParamList, 'Home'>
 
-interface RecommendQueryType {
-  data: RecommendCardType[]
-}
-
 const Home = ({ navigation }: HomePropType) => {
+  const queryClient = useQueryClient();
   const [index, setIndex] = useState(0);
   const [routes] = useState([
     { key: 'logo', title: '로고' },
@@ -28,8 +25,27 @@ const Home = ({ navigation }: HomePropType) => {
     { key: 'live', title: '라이브' },
   ]);
 
-  const { data: TodayList } = useQuery<RecommendQueryType, Error>('getTodayRecommend', getTodayRecommend);
-  const { data: MoreList } = useQuery<RecommendQueryType, Error>('getMoreRecommend', getMoreRecommend);
+  const { data: todayList } = useQuery<{ data: Array<RecommendCardType & { today?: boolean }> }, Error>('getTodayRecommend',
+    async () => {
+      const queryData: { data: Array<RecommendCardType & { today?: boolean }> }
+        = await getTodayRecommend();
+      return {
+        data: queryData?.data.map(v => {
+          return { ...v, today: true };
+        }),
+      };
+    });
+  const { data: moreList } = useQuery<RecommendQueryType, Error>('getMoreRecommend', getMoreRecommend);
+
+  const { mutate: addMutate } = useMutation('getAddMore', ({ url, method }: { url: string, method: 'get' }) =>
+    getAddMoreRecommend({ url, method }),
+    {
+      onSuccess: (addList) => {
+        queryClient.setQueryData<RecommendQueryType>('getMoreRecommend', (list) => {
+          return { ...addList, data: list?.data.concat(addList.data) };
+        });
+      },
+    });
 
   return (
     <TabView
@@ -87,13 +103,18 @@ const Home = ({ navigation }: HomePropType) => {
           case 'logo':
             return (
               <FlatList
+                keyExtractor={v => v.id.toString()}
+                onEndReached={() => {
+                  if (moreList?.meta.next) {
+                    addMutate({ url: moreList?.meta.next.url, method: moreList?.meta.next.method });
+                  }
+                }}
                 showsVerticalScrollIndicator={false}
-                data={TodayList?.data.concat(MoreList?.data || [])}
+                data={todayList?.data.concat(moreList?.data || [])}
                 renderItem={({ item, index: cardIndex }) => (
                   <>
                     {/* 추천카드 */}
                     <RecommendCard card={item} cardIndex={cardIndex} />
-                    {/* 맞춤추천  컴포넌트로 빼자*/}
                     {cardIndex === 1 &&
                       <View style={{ marginTop: 12, marginBottom: 24, marginHorizontal: 16 }}>
                         <Text style={[FONT.SemiBold, {
@@ -108,7 +129,7 @@ const Home = ({ navigation }: HomePropType) => {
                         <CustomRecommend title="반려 동물을 키우는" image={withpet} isHot={false} viewStyle={{ height: 62 }} />
                         <TouchableOpacity style={{
                           height: 44,
-                          marginVertical: 16,
+                          marginTop: 16,
                           borderRadius: 5,
                           backgroundColor: theme.colors.grayscale.gray1,
                           justifyContent: 'center',
