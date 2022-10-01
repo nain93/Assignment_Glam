@@ -1,5 +1,4 @@
 import React from 'react';
-import { RecoilRoot } from 'recoil';
 import {
   MutationCache,
   QueryCache,
@@ -30,9 +29,7 @@ const AppHoc = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <RecoilRoot>
-        <App />
-      </RecoilRoot>
+      <App />
     </QueryClientProvider>
   );
 };
