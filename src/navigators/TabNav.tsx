@@ -1,13 +1,14 @@
-import { Image, StyleSheet } from 'react-native';
+import { Image, Pressable, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
 import Home from '../screens/Home';
 import Mypage from '../screens/Mypage';
 import Live from '../screens/Live';
 import theme from '../styles/theme';
-import { connection, home, live, more, station } from '../assets/icon';
+import { back, connection, home, live, more, station } from '../assets/icon';
 import Station from '../screens/Station';
 import Connection from '../screens/Connection';
+import { useNavigation } from '@react-navigation/native';
 
 export type RootStackParamList = {
   Home: undefined;
@@ -19,8 +20,8 @@ export type RootStackParamList = {
 
 const Tabs = createBottomTabNavigator<RootStackParamList>();
 
-
 const TabNavigator = () => {
+  const navigation = useNavigation();
   return (
     <Tabs.Navigator
       sceneContainerStyle={{
@@ -38,7 +39,7 @@ const TabNavigator = () => {
         options={{
           tabBarLabel: '',
           headerShown: false,
-          tabBarIcon: ({ focused }) => (
+          tabBarIcon: () => (
             <Image
               style={{ width: 28, height: 28 }}
               source={home}
@@ -52,7 +53,7 @@ const TabNavigator = () => {
         options={{
           tabBarLabel: '',
           headerShown: false,
-          tabBarIcon: ({ focused }) => (
+          tabBarIcon: () => (
             <Image
               style={{ width: 28, height: 28 }}
               source={live}
@@ -66,7 +67,7 @@ const TabNavigator = () => {
         options={{
           tabBarLabel: '',
           headerShown: false,
-          tabBarIcon: ({ focused }) => (
+          tabBarIcon: () => (
             <Image
               style={{ width: 28, height: 28 }}
               source={station}
@@ -80,7 +81,7 @@ const TabNavigator = () => {
         options={{
           tabBarLabel: '',
           headerShown: false,
-          tabBarIcon: ({ focused }) => (
+          tabBarIcon: () => (
             <Image
               style={{ width: 28, height: 28 }}
               source={connection}
@@ -92,9 +93,15 @@ const TabNavigator = () => {
         name="Mypage"
         component={Mypage}
         options={{
+          headerLeft: () => (
+            <Pressable onPress={() => navigation.goBack()}>
+              <Image style={{ marginHorizontal: 16 }} source={back} />
+            </Pressable>
+          ),
+          headerTitle: '프로필 수정',
+          headerTitleStyle: { fontSize: 17, color: theme.colors.black, fontWeight: '600' },
           tabBarLabel: '',
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
+          tabBarIcon: () => (
             <Image
               style={{ width: 28, height: 28 }}
               source={more}

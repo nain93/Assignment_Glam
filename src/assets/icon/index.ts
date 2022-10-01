@@ -15,10 +15,12 @@ import station from './nav/station.png';
 import connection from './nav/connection.png';
 import more from './nav/more.png';
 
-
+import back from './profile_edit/back.png';
+import lock from './profile_edit/lock.png';
 
 export {
   info, logo, setting, close,
   today, hot, dia, glamour, withpet,
   home, live, station, connection, more,
+  back, lock,
 };

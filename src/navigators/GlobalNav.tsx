@@ -1,7 +1,6 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import TabNavigator from './TabNav';
-import theme from '../styles/theme';
 
 
 const Stack = createStackNavigator();
