@@ -1,9 +1,9 @@
-import { Dimensions, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, FlatList, Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { TabBar, TabView } from 'react-native-tab-view';
 import React, { useState } from 'react';
 import theme from '../styles/theme';
 import { getStatusBarHeight } from 'react-native-iphone-x-helper';
-import { hot, logo, setting, today } from '../assets/icon';
+import { dia, glamour, logo, setting, today, withpet } from '../assets/icon';
 import { useQuery } from 'react-query';
 import { getMoreRecommend, getTodayRecommend } from '../api/home';
 import FastImage from 'react-native-fast-image';
@@ -12,6 +12,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigators/TabNav';
 import RecommendCard from '../components/RecommendCard';
 import { RecommendCardType } from '../types';
+import CustomRecommend from '../components/CustomRecommend';
 
 type HomePropType = NativeStackScreenProps<RootStackParamList, 'Home'>
 
@@ -93,28 +94,31 @@ const Home = ({ navigation }: HomePropType) => {
                     {/* 추천카드 */}
                     <RecommendCard card={item} cardIndex={cardIndex} />
                     {/* 맞춤추천  컴포넌트로 빼자*/}
-                    <View style={{ marginTop: 12, marginBottom: 24, marginHorizontal: 16 }}>
-                      <Text style={[FONT.SemiBold, {
-                        marginBottom: 12,
-                        fontSize: 20, color: theme.colors.black,
-                      }]}>
-                        맞춤 추천
-                      </Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Image source={today} style={{ width: 40, marginRight: 12 }} />
-                        <Text style={[FONT.Regular, { fontSize: 14 }]}>글램 추천 </Text>
-                        <Image source={hot} style={{ marginRight: 'auto' }} />
-                        <Pressable style={{
-                          backgroundColor: theme.colors.glamBlue,
-                          width: 76, height: 32, borderRadius: 5,
-                          justifyContent: 'center', alignItems: 'center',
+                    {cardIndex === 1 &&
+                      <View style={{ marginTop: 12, marginBottom: 24, marginHorizontal: 16 }}>
+                        <Text style={[FONT.SemiBold, {
+                          marginBottom: 12,
+                          fontSize: 20, color: theme.colors.black,
+                        }]}>
+                          맞춤 추천
+                        </Text>
+                        <CustomRecommend title="글램 추천" image={today} viewStyle={{ marginVertical: 11 }} />
+                        <CustomRecommend title="최상위 매력" image={dia} viewStyle={{ marginVertical: 11 }} />
+                        <CustomRecommend title="볼륨감 있는 체형" image={glamour} viewStyle={{ height: 62 }} />
+                        <CustomRecommend title="반려 동물을 키우는" image={withpet} isHot={false} viewStyle={{ height: 62 }} />
+                        <TouchableOpacity style={{
+                          height: 44,
+                          marginVertical: 16,
+                          borderRadius: 5,
+                          backgroundColor: theme.colors.grayscale.gray1,
+                          justifyContent: 'center',
                         }}>
-                          <Text style={[FONT.SemiBold, { fontSize: 14, color: theme.colors.white }]}>
-                            선택
+                          <Text style={[FONT.SemiBold, { textAlign: 'center', color: theme.colors.black }]}>
+                            24개 항목 모두 보기
                           </Text>
-                        </Pressable>
+                        </TouchableOpacity>
                       </View>
-                    </View>
+                    }
                   </>
                 )}
               />

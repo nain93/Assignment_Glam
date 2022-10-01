@@ -5,6 +5,7 @@ import { close, info } from '../assets/icon';
 import { FONT } from '../styles/font';
 import theme from '../styles/theme';
 import { RecommendCardType } from '../types';
+import FastImage from 'react-native-fast-image';
 
 interface RecommendCardPropType {
   card: RecommendCardType,
@@ -49,6 +50,7 @@ const RecommendCard = ({ card, cardIndex }: RecommendCardPropType) => {
           }]}>오늘의 추천</Text>
         </View>
       }
+      {/* <FastImage source={require(`../assets${card.pictures[0]}`)} style={{ width: 100, height: 100 }} /> */}
 
       <View style={{
         marginTop: (cardIndex === 0 || cardIndex === 1) ? 12 : 'auto',
@@ -108,7 +110,6 @@ const RecommendCard = ({ card, cardIndex }: RecommendCardPropType) => {
           }]}>좋아요</Text>
         </TouchableOpacity>
       </View>
-      {/* <FastImage source={require(item.pictures[0])} /> */}
     </View>
   );
 };
